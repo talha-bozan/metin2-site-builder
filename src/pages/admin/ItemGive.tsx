@@ -281,11 +281,11 @@ export default function ItemGive() {
                     <TableRow key={h.id || i}>
                       <TableCell>{h.id}</TableCell>
                       <TableCell>{h.item_name || h.vnum}</TableCell>
-                      <TableCell>{h.account_name || h.account_id}</TableCell>
+                      <TableCell>{h.account_login || h.account_name || h.account_id}</TableCell>
                       <TableCell>{h.count}</TableCell>
                       <TableCell className="max-w-[150px] truncate">{h.reason || '-'}</TableCell>
                       <TableCell>{h.given_by || '-'}</TableCell>
-                      <TableCell>{h.created_at || '-'}</TableCell>
+                      <TableCell>{h.tarih || h.created_at || '-'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Shield, ShoppingBag, Calendar, BookOpen, LifeBuoy, Coins, User, LogOut, Menu, X } from 'lucide-react';
+import { Shield, ShoppingBag, Calendar, BookOpen, LifeBuoy, Coins, User, LogOut, Menu, X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Wiki', path: '/wiki', icon: BookOpen },
   { label: 'Destek', path: '/destek', icon: LifeBuoy },
   { label: 'EP Yükle', path: '/ep-yukle', icon: Coins },
+  { label: 'İndir', path: '/indir', icon: Download },
 ];
 
 export default function Navbar() {

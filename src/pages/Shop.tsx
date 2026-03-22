@@ -5,13 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Search, ShoppingCart, ChevronRight, Star, Coins, Package, Loader2 } from 'lucide-react';
+import { Search, ShoppingCart, ChevronRight, ChevronLeft, Star, Coins, Package, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { shopApi, ShopCategory, ShopItem } from '@/api/shop';
 
 export default function Shop() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, refreshProfile } = useAuth();
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [items, setItems] = useState<ShopItem[]>([]);
   const [selectedMain, setSelectedMain] = useState<number | null>(null);
@@ -62,6 +62,20 @@ export default function Shop() {
     return filtered;
   }, [selectedMain, selectedSub, search, items, subCategories]);
 
+  // Pagination
+  const ITEMS_PER_PAGE = 24;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredItems.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredItems, currentPage]);
+
+  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [selectedMain, selectedSub, search]);
+
   const handlePurchase = async () => {
     if (!isAuthenticated) { toast.error('Satin almak icin giris yapiniz'); return; }
     if (!selectedItem) return;
@@ -72,6 +86,8 @@ export default function Shop() {
       toast.success(res.data?.message || `${selectedItem.item_name} x${purchaseCount} satin alindi!`);
       setSelectedItem(null);
       setPurchaseCount(1);
+      // Refresh user profile to update EP/coins display
+      refreshProfile();
     } else {
       toast.error(res.error || 'Satin alma basarisiz');
     }
@@ -159,8 +175,9 @@ export default function Shop() {
                 <p className="text-sm">Bu kategoride urun bulunamadi</p>
               </div>
             ) : (
+              <>
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredItems.map((item) => (
+                {paginatedItems.map((item) => (
                   <Card
                     key={item.id}
                     className="glass-card group cursor-pointer transition-all glow-gold-hover hover:border-primary/30"
@@ -199,6 +216,57 @@ export default function Shop() {
                   </Card>
                 ))}
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="gap-1"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Onceki
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
+                      .reduce<(number | string)[]>((acc, p, i, arr) => {
+                        if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('...');
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((p, i) =>
+                        typeof p === 'string' ? (
+                          <span key={`dots-${i}`} className="px-1 text-muted-foreground">...</span>
+                        ) : (
+                          <Button
+                            key={p}
+                            variant={currentPage === p ? 'default' : 'outline'}
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => setCurrentPage(p)}
+                          >
+                            {p}
+                          </Button>
+                        )
+                      )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="gap-1"
+                  >
+                    Sonraki
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              </>
             )}
           </div>
         </div>

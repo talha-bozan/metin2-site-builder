@@ -17,6 +17,7 @@ import Wiki from "./pages/Wiki";
 import Support from "./pages/Support";
 import EPYukle from "./pages/EPYukle";
 import Profile from "./pages/Profile";
+import Downloads from "./pages/Downloads";
 import NotFound from "./pages/NotFound";
 
 // Admin pages (lazy loaded)
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/destek" element={<Support />} />
               <Route path="/ep-yukle" element={<EPYukle />} />
               <Route path="/profil" element={<Profile />} />
+              <Route path="/indir" element={<Downloads />} />
 
               {/* Admin */}
               <Route path="/admin" element={<AdminDashboard />} />

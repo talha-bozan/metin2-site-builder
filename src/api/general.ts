@@ -22,9 +22,20 @@ export interface News {
   tarih: string;
 }
 
+export interface Pack {
+  id: number;
+  name: string;
+  size: string;
+  url: string;
+  image: string;
+  tarih: string;
+  status: number;
+}
+
 export const generalApi = {
   getBanners: () => api.get<Banner[]>('/banners'),
   getServerStatus: () => api.get<ServerStatus>('/server-status'),
   getNews: () => api.get<News[]>('/news'),
   getSettings: () => api.get<Record<string, string>>('/settings'),
+  getPacks: () => api.get<Pack[]>('/packs'),
 };
