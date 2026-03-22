@@ -23,8 +23,9 @@ export default function Logs() {
     setLoading(l => ({ ...l, shop: true }));
     const res = await adminApi.getShopLogs(page);
     if (res.success && res.data) {
-      setShopLogs(res.data.logs || res.data);
-      setShopTotal(res.data.total_pages || 1);
+      const d = res.data as any;
+      setShopLogs(Array.isArray(d) ? d : d.logs || []);
+      setShopTotal(d.total_pages || 1);
     }
     setLoading(l => ({ ...l, shop: false }));
   };
@@ -33,8 +34,9 @@ export default function Logs() {
     setLoading(l => ({ ...l, ban: true }));
     const res = await adminApi.getBanLogs(page);
     if (res.success && res.data) {
-      setBanLogs(res.data.logs || res.data);
-      setBanTotal(res.data.total_pages || 1);
+      const d = res.data as any;
+      setBanLogs(Array.isArray(d) ? d : d.logs || []);
+      setBanTotal(d.total_pages || 1);
     }
     setLoading(l => ({ ...l, ban: false }));
   };
@@ -43,8 +45,9 @@ export default function Logs() {
     setLoading(l => ({ ...l, payment: true }));
     const res = await adminApi.getPaymentLogs(page);
     if (res.success && res.data) {
-      setPaymentLogs(res.data.logs || res.data);
-      setPaymentTotal(res.data.total_pages || 1);
+      const d = res.data as any;
+      setPaymentLogs(Array.isArray(d) ? d : d.logs || []);
+      setPaymentTotal(d.total_pages || 1);
     }
     setLoading(l => ({ ...l, payment: false }));
   };
@@ -113,8 +116,9 @@ export default function Logs() {
                   { key: 'id', label: 'ID' },
                   { key: 'username', label: 'Kullanici' },
                   { key: 'item_name', label: 'Urun' },
-                  { key: 'price', label: 'Fiyat' },
-                  { key: 'created_at', label: 'Tarih' },
+                  { key: 'count', label: 'Adet' },
+                  { key: 'coins', label: 'Fiyat (DC)' },
+                  { key: 'tarih', label: 'Tarih' },
                 ]}
               />
               <Pagination page={shopPage} total={shopTotal} setPage={setShopPage} />
@@ -129,7 +133,7 @@ export default function Logs() {
                   { key: 'username', label: 'Kullanici' },
                   { key: 'reason', label: 'Sebep' },
                   { key: 'banned_by', label: 'Banlayan' },
-                  { key: 'created_at', label: 'Tarih' },
+                  { key: 'tarih', label: 'Tarih' },
                 ]}
               />
               <Pagination page={banPage} total={banTotal} setPage={setBanPage} />
@@ -143,9 +147,10 @@ export default function Logs() {
                   { key: 'id', label: 'ID' },
                   { key: 'username', label: 'Kullanici' },
                   { key: 'amount', label: 'Miktar' },
-                  { key: 'method', label: 'Yontem' },
+                  { key: 'ep', label: 'EP' },
+                  { key: 'payment_type', label: 'Yontem' },
                   { key: 'status', label: 'Durum' },
-                  { key: 'created_at', label: 'Tarih' },
+                  { key: 'tarih', label: 'Tarih' },
                 ]}
               />
               <Pagination page={paymentPage} total={paymentTotal} setPage={setPaymentPage} />

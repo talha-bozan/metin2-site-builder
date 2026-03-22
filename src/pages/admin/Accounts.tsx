@@ -18,7 +18,10 @@ import { toast } from 'sonner';
 interface Account {
   id: number;
   login: string;
+  email?: string;
+  cash?: number;
   status: string;
+  create_time?: string;
 }
 
 export default function Accounts() {
@@ -46,8 +49,9 @@ export default function Accounts() {
     try {
       const res = await adminApi.getAccounts(p);
       if (res.success && res.data) {
-        setAccounts(res.data.accounts ?? res.data.data ?? []);
-        setTotalPages(res.data.totalPages ?? res.data.last_page ?? 1);
+        const d = res.data as any;
+        setAccounts(d.accounts ?? (Array.isArray(d) ? d : []));
+        setTotalPages(d.totalPages ?? (Math.ceil((d.total ?? 0) / (d.per_page ?? 50)) || 1));
       }
     } catch {
       toast.error('Hesaplar yuklenirken hata olustu');
@@ -189,6 +193,8 @@ export default function Accounts() {
               <TableRow>
                 <TableHead className="w-20">ID</TableHead>
                 <TableHead>Hesap Adi</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="w-24">EP</TableHead>
                 <TableHead className="w-28">Durum</TableHead>
                 <TableHead className="text-right w-56">Islemler</TableHead>
               </TableRow>
@@ -198,6 +204,8 @@ export default function Accounts() {
                 <TableRow key={account.id}>
                   <TableCell className="font-mono text-muted-foreground">{account.id}</TableCell>
                   <TableCell className="font-medium">{account.login}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{account.email || '-'}</TableCell>
+                  <TableCell className="font-mono">{(account.cash ?? 0).toLocaleString()}</TableCell>
                   <TableCell>{statusBadge(account.status)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1.5">

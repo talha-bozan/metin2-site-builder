@@ -73,6 +73,7 @@ export const adminApi = {
   getPaymentLogs: (page = 1) => api.get(`/admin/logs/payments?page=${page}`),
 
   // Players
+  getPlayers: (page = 1) => api.get(`/admin/players?page=${page}`),
   searchPlayers: (query: string) => api.post('/admin/players/search', { query }),
   getPlayer: (id: number) => api.get(`/admin/players/${id}`),
 

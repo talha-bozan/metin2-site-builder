@@ -105,7 +105,7 @@ export default function News() {
                     <TableCell>{n.id}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{n.title}</TableCell>
                     <TableCell>{n.image ? <img src={n.image} alt="" className="h-8 w-8 rounded object-cover" /> : '-'}</TableCell>
-                    <TableCell>{n.created_at || '-'}</TableCell>
+                    <TableCell>{n.tarih || n.created_at || '-'}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="destructive" size="sm" onClick={() => handleDelete(n.id)}>
                         <Trash2 className="h-4 w-4" />

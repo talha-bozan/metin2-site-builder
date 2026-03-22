@@ -35,15 +35,13 @@ export default function Shop() {
     load();
   }, []);
 
-  // Build category hierarchy
-  const mainCategories = useMemo(() => categories.filter(c => c.mainmenu === 1 || !c.owner), [categories]);
+  // Build category hierarchy - API returns parents with children array
+  const mainCategories = useMemo(() => categories.filter(c => c.mainmenu === 0 || (!c.mainmenu && !c.owner)), [categories]);
   const subCategories = useMemo(() => {
     const map: Record<number, ShopCategory[]> = {};
     categories.forEach(c => {
-      if (c.owner && c.owner > 0) {
-        if (!map[c.owner]) map[c.owner] = [];
-        map[c.owner].push(c);
-      } else if (c.children) {
+      // API returns children already nested
+      if (c.children && c.children.length > 0) {
         map[c.id] = c.children;
       }
     });

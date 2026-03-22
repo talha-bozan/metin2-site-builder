@@ -16,6 +16,7 @@ export default function Tickets() {
   const [read, setRead] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [ticketReplies, setTicketReplies] = useState<any[]>([]);
   const [ticketLoading, setTicketLoading] = useState(false);
   const [reply, setReply] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -23,8 +24,8 @@ export default function Tickets() {
   const fetchTickets = async () => {
     setLoading(true);
     const [res1, res2] = await Promise.all([adminApi.getUnreadTickets(), adminApi.getReadTickets()]);
-    if (res1.success && res1.data) setUnread(Array.isArray(res1.data) ? res1.data : res1.data.data ?? []);
-    if (res2.success && res2.data) setRead(Array.isArray(res2.data) ? res2.data : res2.data.data ?? []);
+    if (res1.success && res1.data) setUnread(Array.isArray(res1.data) ? res1.data : (res1.data as any).data ?? []);
+    if (res2.success && res2.data) setRead(Array.isArray(res2.data) ? res2.data : (res2.data as any).data ?? []);
     setLoading(false);
   };
 
@@ -33,7 +34,12 @@ export default function Tickets() {
   const viewTicket = async (id: number) => {
     setTicketLoading(true);
     const res = await adminApi.getTicket(id);
-    if (res.success && res.data) setSelectedTicket(res.data);
+    if (res.success && res.data) {
+      const d = res.data as any;
+      // Backend returns { ticket: {...}, replies: [...] }
+      setSelectedTicket(d.ticket || d);
+      setTicketReplies(d.replies || []);
+    }
     setTicketLoading(false);
   };
 
@@ -58,32 +64,46 @@ export default function Tickets() {
     if (res.success) {
       toast.success('Ticket kapatildi');
       setSelectedTicket(null);
+      setTicketReplies([]);
       fetchTickets();
     } else {
       toast.error(res.error || 'Hata olustu');
     }
   };
 
+  const getStatusLabel = (status: number | string) => {
+    const s = typeof status === 'number' ? status : parseInt(String(status), 10);
+    if (s === 0) return { label: 'Yeni', variant: 'default' as const };
+    if (s === 1) return { label: 'Yanitlandi', variant: 'secondary' as const };
+    if (s === 2) return { label: 'Kapali', variant: 'outline' as const };
+    return { label: String(status), variant: 'secondary' as const };
+  };
+
+  const isOpen = (status: number | string) => {
+    const s = typeof status === 'number' ? status : parseInt(String(status), 10);
+    return s < 2;
+  };
+
   if (selectedTicket) {
     return (
       <AdminLayout>
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" size="sm" onClick={() => setSelectedTicket(null)}>
+          <Button variant="outline" size="sm" onClick={() => { setSelectedTicket(null); setTicketReplies([]); }}>
             <ArrowLeft className="h-4 w-4 mr-2" /> Geri
           </Button>
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'Cinzel, serif' }}>
             Ticket #{selectedTicket.id}
           </h1>
-          <Badge variant={selectedTicket.status === 'open' ? 'default' : 'secondary'}>
-            {selectedTicket.status === 'open' ? 'Acik' : 'Kapali'}
+          <Badge variant={getStatusLabel(selectedTicket.status).variant}>
+            {getStatusLabel(selectedTicket.status).label}
           </Badge>
         </div>
 
         <Card className="glass-card mb-6">
           <CardHeader>
-            <CardTitle className="text-lg">{selectedTicket.subject || 'Konu belirtilmemis'}</CardTitle>
+            <CardTitle className="text-lg">{selectedTicket.title || selectedTicket.subject || 'Konu belirtilmemis'}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              {selectedTicket.username} - {selectedTicket.created_at}
+              {selectedTicket.username} - {selectedTicket.tarih || selectedTicket.created_at || ''}
             </p>
           </CardHeader>
           <CardContent>
@@ -91,27 +111,36 @@ export default function Tickets() {
               <div className="flex justify-center py-4"><Loader2 className="h-6 w-6 animate-spin" /></div>
             ) : (
               <div className="space-y-4">
-                {selectedTicket.messages?.map((msg: any, i: number) => (
-                  <div key={i} className={`p-4 rounded-lg ${msg.is_admin ? 'bg-primary/10 border border-primary/20' : 'bg-secondary/50'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">
-                        {msg.is_admin ? 'Admin' : selectedTicket.username}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{msg.created_at}</span>
+                {/* Original ticket message */}
+                <div className="p-4 rounded-lg bg-secondary/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{selectedTicket.username}</span>
+                    <span className="text-xs text-muted-foreground">{selectedTicket.tarih || selectedTicket.created_at || ''}</span>
+                  </div>
+                  <p className="text-sm whitespace-pre-wrap">{selectedTicket.message}</p>
+                </div>
+
+                {/* Replies */}
+                {ticketReplies.map((msg: any, i: number) => {
+                  const isAdmin = msg.username?.includes('Admin') || msg.accountid === 0;
+                  return (
+                    <div key={msg.id || i} className={`p-4 rounded-lg ${isAdmin ? 'bg-primary/10 border border-primary/20' : 'bg-secondary/50'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">
+                          {isAdmin ? 'Admin' : msg.username || selectedTicket.username}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{msg.tarih || msg.created_at || ''}</span>
+                      </div>
+                      <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                     </div>
-                    <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-                  </div>
-                )) || (
-                  <div className="p-4 rounded-lg bg-secondary/50">
-                    <p className="text-sm whitespace-pre-wrap">{selectedTicket.message}</p>
-                  </div>
-                )}
+                  );
+                })}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {selectedTicket.status === 'open' && (
+        {isOpen(selectedTicket.status) && (
           <Card className="glass-card">
             <CardContent className="pt-6">
               <div className="space-y-4">
@@ -156,13 +185,13 @@ export default function Tickets() {
             <TableRow key={t.id}>
               <TableCell>{t.id}</TableCell>
               <TableCell>{t.username}</TableCell>
-              <TableCell className="max-w-[200px] truncate">{t.subject || '-'}</TableCell>
+              <TableCell className="max-w-[200px] truncate">{t.title || t.subject || '-'}</TableCell>
               <TableCell>
-                <Badge variant={t.status === 'open' ? 'default' : 'secondary'}>
-                  {t.status === 'open' ? 'Acik' : 'Kapali'}
+                <Badge variant={getStatusLabel(t.status).variant}>
+                  {getStatusLabel(t.status).label}
                 </Badge>
               </TableCell>
-              <TableCell>{t.created_at}</TableCell>
+              <TableCell>{t.tarih || t.created_at || '-'}</TableCell>
               <TableCell className="text-right">
                 <Button variant="outline" size="sm" onClick={() => viewTicket(t.id)}>
                   <Eye className="h-4 w-4 mr-1" /> Goruntule
