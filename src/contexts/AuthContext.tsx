@@ -7,7 +7,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (username: string, password: string, email: string) => Promise<{ success: boolean; error?: string }>;
+  register: (username: string, password: string, email: string, extra?: Record<string, string>) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
 }
@@ -44,8 +44,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: false, error: res.error || (res.data as any)?.error || 'Giris basarisiz' };
   }, []);
 
-  const register = useCallback(async (username: string, password: string, email: string) => {
-    const res = await authApi.register(username, password, email);
+  const register = useCallback(async (username: string, password: string, email: string, extra?: Record<string, string>) => {
+    const res = await authApi.register(username, password, email, extra);
     if (res.success) return { success: true };
     return { success: false, error: res.error || 'Kayit basarisiz' };
   }, []);
