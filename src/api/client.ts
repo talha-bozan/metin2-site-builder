@@ -1,4 +1,4 @@
-const API_BASE = 'http://46.225.67.8/index';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -26,11 +26,21 @@ async function request<T = any>(
       headers,
     });
 
-    const data = await response.json();
-    return { success: true, data };
+    const json = await response.json();
+
+    // Backend already returns {success, data, error} format
+    if (typeof json.success === 'boolean') {
+      return json as ApiResponse<T>;
+    }
+
+    // Fallback: wrap raw response
+    if (response.ok) {
+      return { success: true, data: json };
+    }
+    return { success: false, error: json.error || json.message || `HTTP ${response.status}` };
   } catch (error: any) {
     console.error(`API Error [${endpoint}]:`, error);
-    return { success: false, error: error.message || 'Bağlantı hatası' };
+    return { success: false, error: error.message || 'Baglanti hatasi' };
   }
 }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,16 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { LifeBuoy, Send, MessageCircle, Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-
-const sampleTickets = [
-  { id: 1, ticketid: 1001, title: 'Item kayboldu', status: 0, tarih: '2023-04-20 14:30:00', type: 0 },
-  { id: 2, ticketid: 1002, title: 'EP yükleme sorunu', status: 1, tarih: '2023-04-19 10:15:00', type: 1 },
-];
+import { ticketsApi } from '@/api/tickets';
 
 const statusMap: Record<number, { label: string; variant: 'default' | 'secondary' | 'destructive' }> = {
-  0: { label: 'Açık', variant: 'default' },
-  1: { label: 'Yanıtlandı', variant: 'secondary' },
-  2: { label: 'Kapatıldı', variant: 'destructive' },
+  0: { label: 'Acik', variant: 'default' },
+  1: { label: 'Yanitlandi', variant: 'secondary' },
+  2: { label: 'Kapatildi', variant: 'destructive' },
 };
 
 export default function Support() {
@@ -28,17 +24,33 @@ export default function Support() {
   const [message, setMessage] = useState('');
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [ticketsLoading, setTicketsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isAuthenticated) { setTicketsLoading(false); return; }
+    ticketsApi.getTickets().then(res => {
+      if (res.success && res.data) setTickets(Array.isArray(res.data) ? res.data : []);
+      setTicketsLoading(false);
+    });
+  }, [isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) { toast.error('Destek talebi oluşturmak için giriş yapınız'); return; }
-    if (!title.trim() || !message.trim() || !category) { toast.error('Tüm alanları doldurunuz'); return; }
+    if (!isAuthenticated) { toast.error('Destek talebi olusturmak icin giris yapiniz'); return; }
+    if (!title.trim() || !message.trim() || !category) { toast.error('Tum alanlari doldurunuz'); return; }
     setLoading(true);
-    setTimeout(() => {
-      toast.success('Destek talebiniz oluşturuldu!');
+    const res = await ticketsApi.createTicket(title, message, category);
+    setLoading(false);
+    if (res.success) {
+      toast.success('Destek talebiniz olusturuldu!');
       setTitle(''); setMessage(''); setCategory('');
-      setLoading(false);
-    }, 1000);
+      // Refresh tickets
+      const tRes = await ticketsApi.getTickets();
+      if (tRes.success && tRes.data) setTickets(Array.isArray(tRes.data) ? tRes.data : []);
+    } else {
+      toast.error(res.error || 'Talep olusturulamadi');
+    }
   };
 
   return (
@@ -54,35 +66,35 @@ export default function Support() {
           <Card className="glass-card lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-base" style={{ fontFamily: 'Cinzel, serif' }}>Yeni Talep</CardTitle>
-              <CardDescription>Sorununuzu detaylı açıklayın</CardDescription>
+              <CardDescription>Sorununuzu detayli aciklayin</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>Kategori</Label>
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger><SelectValue placeholder="Seçiniz" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Seciniz" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="teknik">Teknik Sorun</SelectItem>
-                      <SelectItem value="odeme">Ödeme Sorunu</SelectItem>
+                      <SelectItem value="odeme">Odeme Sorunu</SelectItem>
                       <SelectItem value="hesap">Hesap Sorunu</SelectItem>
-                      <SelectItem value="sikayet">Şikayet</SelectItem>
-                      <SelectItem value="oneri">Öneri</SelectItem>
-                      <SelectItem value="diger">Diğer</SelectItem>
+                      <SelectItem value="sikayet">Sikayet</SelectItem>
+                      <SelectItem value="oneri">Oneri</SelectItem>
+                      <SelectItem value="diger">Diger</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Başlık</Label>
-                  <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Kısa başlık" maxLength={100} />
+                  <Label>Baslik</Label>
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Kisa baslik" maxLength={100} />
                 </div>
                 <div className="space-y-2">
                   <Label>Mesaj</Label>
-                  <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Sorununuzu detaylı açıklayın..." rows={5} maxLength={1000} />
+                  <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Sorununuzu detayli aciklayin..." rows={5} maxLength={1000} />
                 </div>
                 <Button type="submit" className="w-full active:scale-[0.97] transition-transform" disabled={loading}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  Gönder
+                  Gonder
                 </Button>
               </form>
             </CardContent>
@@ -95,15 +107,17 @@ export default function Support() {
             </CardHeader>
             <CardContent>
               {!isAuthenticated ? (
-                <p className="text-sm text-muted-foreground text-center py-8">Taleplerinizi görmek için giriş yapınız</p>
-              ) : sampleTickets.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">Taleplerinizi gormek icin giris yapiniz</p>
+              ) : ticketsLoading ? (
+                <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+              ) : tickets.length === 0 ? (
                 <div className="flex flex-col items-center py-8 text-muted-foreground">
                   <MessageCircle className="h-10 w-10 mb-2 opacity-40" />
-                  <p className="text-sm">Henüz destek talebiniz yok</p>
+                  <p className="text-sm">Henuz destek talebiniz yok</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {sampleTickets.map((t) => {
+                  {tickets.map((t: any) => {
                     const status = statusMap[t.status] || statusMap[0];
                     return (
                       <div key={t.id} className="flex items-center justify-between rounded-lg bg-secondary/30 px-4 py-3">
