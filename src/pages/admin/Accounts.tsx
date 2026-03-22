@@ -92,7 +92,7 @@ export default function Accounts() {
         setBanTarget(null);
         fetchAccounts(page);
       } else {
-        toast.error(res.message ?? 'Ban islemi basarisiz');
+        toast.error(res.error || 'Ban islemi basarisiz');
       }
     } catch {
       toast.error('Ban islemi sirasinda hata olustu');
@@ -108,7 +108,7 @@ export default function Accounts() {
         toast.success(`${account.login} hesabinin bani kaldirildi`);
         fetchAccounts(page);
       } else {
-        toast.error(res.message ?? 'Unban islemi basarisiz');
+        toast.error(res.error || 'Unban islemi basarisiz');
       }
     } catch {
       toast.error('Unban islemi sirasinda hata olustu');
@@ -132,7 +132,7 @@ export default function Accounts() {
         setEpReason('');
         setEpTarget(null);
       } else {
-        toast.error(res.message ?? 'EP ekleme basarisiz');
+        toast.error(res.error || 'EP ekleme basarisiz');
       }
     } catch {
       toast.error('EP ekleme sirasinda hata olustu');

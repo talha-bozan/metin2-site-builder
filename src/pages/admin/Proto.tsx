@@ -18,10 +18,11 @@ export default function Proto() {
     setLoading(true);
     const res = await adminApi.searchProto(query);
     if (res.success && res.data) {
-      setResults(res.data);
-      if (res.data.length === 0) toast.info('Sonuc bulunamadi');
+      const items = Array.isArray(res.data) ? res.data : res.data.data ?? [];
+      setResults(items);
+      if (items.length === 0) toast.info('Sonuc bulunamadi');
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setLoading(false);
   };

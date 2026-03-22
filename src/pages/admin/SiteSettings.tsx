@@ -41,7 +41,7 @@ export default function SiteSettings() {
     if (res.success) {
       toast.success('Ayarlar kaydedildi');
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSaving(false);
   };

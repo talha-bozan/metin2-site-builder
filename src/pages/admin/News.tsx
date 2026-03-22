@@ -21,7 +21,7 @@ export default function News() {
   const fetchNews = async () => {
     setLoading(true);
     const res = await adminApi.getNews();
-    if (res.success && res.data) setNews(res.data);
+    if (res.success && res.data) setNews(Array.isArray(res.data) ? res.data : res.data.data ?? []);
     setLoading(false);
   };
 
@@ -36,7 +36,7 @@ export default function News() {
       setTitle(''); setContent(''); setImage('');
       fetchNews();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSubmitting(false);
   };
@@ -47,7 +47,7 @@ export default function News() {
       toast.success('Haber silindi');
       fetchNews();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
   };
 

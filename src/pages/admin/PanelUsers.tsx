@@ -22,7 +22,7 @@ export default function PanelUsers() {
   const fetchUsers = async () => {
     setLoading(true);
     const res = await adminApi.getUsers();
-    if (res.success && res.data) setUsers(res.data);
+    if (res.success && res.data) setUsers(Array.isArray(res.data) ? res.data : res.data.data ?? []);
     setLoading(false);
   };
 
@@ -37,7 +37,7 @@ export default function PanelUsers() {
       setUsername(''); setPassword(''); setPermission('admin');
       fetchUsers();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSubmitting(false);
   };
@@ -48,7 +48,7 @@ export default function PanelUsers() {
       toast.success('Kullanici silindi');
       fetchUsers();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
   };
 

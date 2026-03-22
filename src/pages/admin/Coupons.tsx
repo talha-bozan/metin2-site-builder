@@ -25,8 +25,8 @@ export default function Coupons() {
   const fetchCoupons = async () => {
     setLoading(true);
     const [res1, res2] = await Promise.all([adminApi.getCoupons(), adminApi.getUsedCoupons()]);
-    if (res1.success && res1.data) setUnusedCoupons(res1.data);
-    if (res2.success && res2.data) setUsedCoupons(res2.data);
+    if (res1.success && res1.data) setUnusedCoupons(Array.isArray(res1.data) ? res1.data : res1.data.data ?? []);
+    if (res2.success && res2.data) setUsedCoupons(Array.isArray(res2.data) ? res2.data : res2.data.data ?? []);
     setLoading(false);
   };
 
@@ -41,7 +41,7 @@ export default function Coupons() {
       setCode(''); setValue(''); setVnum('');
       fetchCoupons();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSubmitting(false);
   };
@@ -52,7 +52,7 @@ export default function Coupons() {
       toast.success('Kupon silindi');
       fetchCoupons();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
   };
 

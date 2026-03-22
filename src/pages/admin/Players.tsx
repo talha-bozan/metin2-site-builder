@@ -23,10 +23,11 @@ export default function Players() {
     setLoading(true);
     const res = await adminApi.searchPlayers(query);
     if (res.success && res.data) {
-      setResults(res.data);
-      if (res.data.length === 0) toast.info('Oyuncu bulunamadi');
+      const players = Array.isArray(res.data) ? res.data : res.data.data ?? [];
+      setResults(players);
+      if (players.length === 0) toast.info('Oyuncu bulunamadi');
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setLoading(false);
   };

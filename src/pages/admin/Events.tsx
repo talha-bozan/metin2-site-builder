@@ -21,7 +21,7 @@ export default function Events() {
   const fetchEvents = async () => {
     setLoading(true);
     const res = await adminApi.getEvents();
-    if (res.success && res.data) setEvents(res.data);
+    if (res.success && res.data) setEvents(Array.isArray(res.data) ? res.data : res.data.data ?? []);
     setLoading(false);
   };
 
@@ -41,7 +41,7 @@ export default function Events() {
       setDialogOpen(false);
       fetchEvents();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSubmitting(false);
   };
@@ -58,7 +58,7 @@ export default function Events() {
       toast.success('Etkinlik silindi');
       fetchEvents();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
   };
 

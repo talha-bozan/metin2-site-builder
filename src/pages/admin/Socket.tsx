@@ -21,10 +21,10 @@ export default function Socket() {
     setDcLoading(true);
     const res = await adminApi.dcPlayer(dcName);
     if (res.success) {
-      toast.success('Oyuncu baglantisi kesildi');
+      toast.success(res.data?.message || 'Oyuncu baglantisi kesildi');
       setDcName('');
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setDcLoading(false);
   };
@@ -34,10 +34,10 @@ export default function Socket() {
     setChatLoading(true);
     const res = await adminApi.sendChat(chatMsg);
     if (res.success) {
-      toast.success('Chat mesaji gonderildi');
+      toast.success(res.data?.message || 'Chat mesaji gonderildi');
       setChatMsg('');
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setChatLoading(false);
   };
@@ -47,10 +47,10 @@ export default function Socket() {
     setNoticeLoading(true);
     const res = await adminApi.sendNotice(noticeMsg);
     if (res.success) {
-      toast.success('Duyuru gonderildi');
+      toast.success(res.data?.message || 'Duyuru gonderildi');
       setNoticeMsg('');
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setNoticeLoading(false);
   };

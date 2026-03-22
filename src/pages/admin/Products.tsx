@@ -121,7 +121,7 @@ export default function Products() {
         resetForm();
         fetchProducts();
       } else {
-        toast.error(res.message || 'Bir hata olustu.');
+        toast.error(res.error || 'Bir hata olustu.');
       }
     } catch {
       toast.error('Bir hata olustu.');
@@ -136,7 +136,7 @@ export default function Products() {
       toast.success('Urun silindi.');
       fetchProducts();
     } else {
-      toast.error(res.message || 'Silinemedi.');
+      toast.error(res.error || 'Silinemedi.');
     }
   };
 

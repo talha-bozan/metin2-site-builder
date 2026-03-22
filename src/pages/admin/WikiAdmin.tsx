@@ -25,7 +25,7 @@ export default function WikiAdmin() {
   const fetchEntries = async () => {
     setLoading(true);
     const res = await adminApi.getWikiEntries();
-    if (res.success && res.data) setEntries(res.data);
+    if (res.success && res.data) setEntries(Array.isArray(res.data) ? res.data : res.data.data ?? []);
     setLoading(false);
   };
 
@@ -45,7 +45,7 @@ export default function WikiAdmin() {
       setDialogOpen(false);
       fetchEntries();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSubmitting(false);
   };
@@ -70,7 +70,7 @@ export default function WikiAdmin() {
       toast.success('Silindi');
       fetchEntries();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
   };
 

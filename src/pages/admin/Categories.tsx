@@ -22,7 +22,7 @@ export default function Categories() {
   const fetchCategories = async () => {
     setLoading(true);
     const res = await adminApi.getCategories();
-    if (res.success && res.data) setCategories(res.data);
+    if (res.success && res.data) setCategories(Array.isArray(res.data) ? res.data : res.data.data ?? []);
     setLoading(false);
   };
 
@@ -37,7 +37,7 @@ export default function Categories() {
       setName(''); setMainmenu(false); setOwner('');
       fetchCategories();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSubmitting(false);
   };
@@ -48,7 +48,7 @@ export default function Categories() {
       toast.success('Kategori silindi');
       fetchCategories();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
   };
 

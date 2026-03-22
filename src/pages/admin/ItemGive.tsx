@@ -32,7 +32,7 @@ export default function ItemGive() {
 
   useEffect(() => {
     adminApi.getApplyTypes().then(res => {
-      if (res.success && res.data) setApplyTypes(res.data);
+      if (res.success && res.data) setApplyTypes(Array.isArray(res.data) ? res.data : res.data.data ?? []);
     });
     fetchHistory(1);
   }, []);
@@ -53,7 +53,7 @@ export default function ItemGive() {
     if (!itemQuery.trim()) return;
     setSearchingItem(true);
     const res = await adminApi.searchItems(itemQuery);
-    if (res.success && res.data) setItemResults(res.data);
+    if (res.success && res.data) setItemResults(Array.isArray(res.data) ? res.data : res.data.data ?? []);
     setSearchingItem(false);
   };
 
@@ -61,7 +61,7 @@ export default function ItemGive() {
     if (!accountQuery.trim()) return;
     setSearchingAccount(true);
     const res = await adminApi.searchAccounts(accountQuery);
-    if (res.success && res.data) setAccountResults(res.data);
+    if (res.success && res.data) setAccountResults(Array.isArray(res.data) ? res.data : res.data.data ?? []);
     setSearchingAccount(false);
   };
 
@@ -91,7 +91,7 @@ export default function ItemGive() {
       setReason('');
       fetchHistory(1);
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSubmitting(false);
   };

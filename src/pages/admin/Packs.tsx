@@ -21,7 +21,7 @@ export default function Packs() {
   const fetchPacks = async () => {
     setLoading(true);
     const res = await adminApi.getPacks();
-    if (res.success && res.data) setPacks(res.data);
+    if (res.success && res.data) setPacks(Array.isArray(res.data) ? res.data : res.data.data ?? []);
     setLoading(false);
   };
 
@@ -36,7 +36,7 @@ export default function Packs() {
       setName(''); setItems(''); setPrice('');
       fetchPacks();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSubmitting(false);
   };
@@ -47,7 +47,7 @@ export default function Packs() {
       toast.success('Paket silindi');
       fetchPacks();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
   };
 

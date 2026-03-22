@@ -23,8 +23,8 @@ export default function Tickets() {
   const fetchTickets = async () => {
     setLoading(true);
     const [res1, res2] = await Promise.all([adminApi.getUnreadTickets(), adminApi.getReadTickets()]);
-    if (res1.success && res1.data) setUnread(res1.data);
-    if (res2.success && res2.data) setRead(res2.data);
+    if (res1.success && res1.data) setUnread(Array.isArray(res1.data) ? res1.data : res1.data.data ?? []);
+    if (res2.success && res2.data) setRead(Array.isArray(res2.data) ? res2.data : res2.data.data ?? []);
     setLoading(false);
   };
 
@@ -47,7 +47,7 @@ export default function Tickets() {
       viewTicket(selectedTicket.id);
       fetchTickets();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
     setSubmitting(false);
   };
@@ -60,7 +60,7 @@ export default function Tickets() {
       setSelectedTicket(null);
       fetchTickets();
     } else {
-      toast.error(res.message || 'Hata olustu');
+      toast.error(res.error || 'Hata olustu');
     }
   };
 
