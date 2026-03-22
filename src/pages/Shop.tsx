@@ -5,10 +5,57 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Search, ShoppingCart, ChevronRight, ChevronLeft, Star, Coins, Package, Loader2, Flame, Percent, Sparkles } from 'lucide-react';
+import { Search, ShoppingCart, ChevronRight, ChevronLeft, Star, Coins, Package, Loader2, Flame, Percent, Sparkles, Zap, Shield, Swords } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { shopApi, ShopCategory, ShopItem } from '@/api/shop';
+
+/* Metin2 APPLY_TYPES - bonus type names */
+const APPLY_NAMES: Record<number, string> = {
+  1:"HP", 2:"SP", 3:"Yasam Enerjisi", 4:"Zeka", 5:"Güç", 6:"Çeviklik",
+  7:"Saldırı Hızı", 8:"Hareket Hızı", 9:"Büyü Hızı", 10:"HP Üretimi", 11:"SP Üretimi",
+  12:"Zehirleme", 13:"Sersemletme %", 14:"Yavaşlatma %", 15:"Kritik Vuruş %",
+  16:"Delici Vuruş %", 17:"İnsanlara Güçlü", 18:"Hayvanlara Güçlü",
+  19:"Oklara Güçlü", 20:"Mistiklere Güçlü", 21:"Ölümsüzlere Güçlü",
+  22:"Şeytanlara Güçlü", 23:"HP Emilim", 24:"SP Emilim",
+  25:"SP Çalma %", 26:"SP Geri Kazanma", 27:"Beden Bloklama",
+  28:"Oktan Korunma %", 29:"Kılıç Savunma", 30:"Çift El Savunma",
+  31:"Bıçak Savunma", 32:"Can Savunma", 33:"Yelpaze Savunma",
+  34:"Oka Dayanıklılık", 35:"Ateşe Dayanıklılık", 36:"Şimşeğe Dayanıklılık",
+  37:"Büyüye Dayanıklılık", 38:"Rüzgar Dayanıklılık", 39:"Darbe Yansıtma",
+  40:"Lanet Yansıtma", 41:"Zehire Direnç", 43:"EXP Bonus",
+  44:"2x Yang Düşme", 45:"2x Eşya Düşme", 46:"İksir Etkisi",
+  47:"HP Yükselmesi", 48:"Sersemlik Bağışıklık", 49:"Yavaşlama Bağışıklık",
+  50:"Düşme Bağışıklık", 53:"Saldırı Değeri", 54:"Savunma",
+  55:"Büyülü Saldırı", 56:"Büyü Savunması", 59:"Savaşçılara Güçlü",
+  60:"Ninjalara Güçlü", 61:"Suralara Güçlü", 62:"Şamanlara Güçlü",
+  63:"Yartıklara Güçlü", 64:"Saldırı Değeri", 65:"Savunma",
+  71:"Beceri Hasarı", 72:"Ortalama Zarar", 73:"Beceri Hasarına Direnç",
+  74:"Ortalama Zarara Direnç", 77:"Eşya Ele Geçirme %",
+};
+
+/* Extract item attributes as readable list */
+function getItemAttrs(item: ShopItem): { name: string; value: number }[] {
+  const attrs: { name: string; value: number }[] = [];
+  for (let i = 0; i <= 6; i++) {
+    const type = (item as any)[`attrtype${i}`] || 0;
+    const value = (item as any)[`attrvalue${i}`] || 0;
+    if (type > 0 && value !== 0) {
+      attrs.push({ name: APPLY_NAMES[type] || `Bonus ${type}`, value });
+    }
+  }
+  return attrs;
+}
+
+/* Extract sockets */
+function getItemSockets(item: ShopItem): number[] {
+  const sockets: number[] = [];
+  for (let i = 0; i <= 2; i++) {
+    const val = (item as any)[`socket${i}`] || 0;
+    if (val > 0) sockets.push(val);
+  }
+  return sockets;
+}
 
 export default function Shop() {
   const { isAuthenticated, user, refreshProfile } = useAuth();
@@ -109,6 +156,9 @@ export default function Shop() {
       </Layout>
     );
   }
+
+  const selectedAttrs = selectedItem ? getItemAttrs(selectedItem) : [];
+  const selectedSockets = selectedItem ? getItemSockets(selectedItem) : [];
 
   return (
     <Layout>
@@ -396,18 +446,18 @@ export default function Shop() {
 
       {/* Item Detail Dialog */}
       <Dialog open={!!selectedItem} onOpenChange={(open) => { if (!open) { setSelectedItem(null); setPurchaseCount(1); } }}>
-        <DialogContent className="border-border max-w-md bg-card">
+        <DialogContent className="border-border max-w-lg bg-card max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2" style={{ fontFamily: 'Cinzel, serif' }}>
               {selectedItem?.item_name}
               {selectedItem?.popularite === 1 && <Star className="h-4 w-4 text-amber-500 fill-amber-500" />}
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground">{selectedItem?.description}</DialogDescription>
+            <DialogDescription className="text-muted-foreground">VNUM: {selectedItem?.vnum}</DialogDescription>
           </DialogHeader>
           {selectedItem && (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* Image */}
-              <div className="relative flex items-center justify-center rounded-lg bg-gradient-to-b from-secondary/60 to-secondary/20 border border-border/50 py-10">
+              <div className="relative flex items-center justify-center rounded-lg bg-gradient-to-b from-secondary/60 to-secondary/20 border border-border/50 py-8">
                 {selectedItem.discount_status === 1 && selectedItem.coins_old > 0 && (
                   <div className="absolute top-2 right-2">
                     <Badge variant="destructive" className="text-xs font-bold px-2">
@@ -416,9 +466,9 @@ export default function Shop() {
                   </div>
                 )}
                 {selectedItem.item_image ? (
-                  <img src={selectedItem.item_image} alt={selectedItem.item_name} className="h-24 w-24 object-contain drop-shadow-lg" />
+                  <img src={selectedItem.item_image} alt={selectedItem.item_name} className="h-20 w-20 object-contain drop-shadow-lg" />
                 ) : (
-                  <span className="text-6xl">⚔️</span>
+                  <span className="text-5xl">⚔️</span>
                 )}
               </div>
 
@@ -433,11 +483,48 @@ export default function Shop() {
                 </div>
               </div>
 
-              {/* Stats */}
-              <div className="flex items-center justify-between px-1">
-                <span className="text-sm text-muted-foreground">Satin Alinma</span>
-                <span className="text-sm text-foreground tabular-nums font-medium">{(selectedItem.buy_count || 0).toLocaleString()} kez</span>
-              </div>
+              {/* Attributes / Bonuses */}
+              {selectedAttrs.length > 0 && (
+                <div className="rounded-md border border-primary/20 bg-primary/5 overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2 border-b border-primary/10 bg-primary/10">
+                    <Zap className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-semibold text-primary uppercase tracking-wider">Efsunlar</span>
+                  </div>
+                  <div className="divide-y divide-border/30">
+                    {selectedAttrs.map((attr, i) => (
+                      <div key={i} className="flex items-center justify-between px-4 py-2">
+                        <span className="text-sm text-foreground/90">{attr.name}</span>
+                        <span className="text-sm font-bold text-emerald-400 tabular-nums">+{attr.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sockets */}
+              {selectedSockets.length > 0 && (
+                <div className="rounded-md border border-blue-500/20 bg-blue-500/5 overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2 border-b border-blue-500/10 bg-blue-500/10">
+                    <Shield className="h-3.5 w-3.5 text-blue-400" />
+                    <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Yuvalar (Socket)</span>
+                  </div>
+                  <div className="px-4 py-2 flex gap-3">
+                    {selectedSockets.map((s, i) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <div className="h-2 w-2 rounded-full bg-blue-400" />
+                        <span className="text-sm text-foreground/80 tabular-nums">{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              {selectedItem.description && selectedItem.description !== 'Bu eşya size fayda sağlayacaktır.' && (
+                <div className="rounded-md bg-secondary/20 px-4 py-3">
+                  <p className="text-xs text-muted-foreground">{selectedItem.description}</p>
+                </div>
+              )}
 
               {/* Quantity */}
               <div className="flex items-center justify-between rounded-md bg-secondary/30 px-4 py-3">
@@ -472,6 +559,7 @@ export default function Shop() {
 function ItemCard({ item, onClick, featured, discount }: { item: ShopItem; onClick: () => void; featured?: boolean; discount?: boolean }) {
   const hasDiscount = item.discount_status === 1 && item.coins_old > 0;
   const discountPercent = hasDiscount ? Math.round(((item.coins_old - item.coins) / item.coins_old) * 100) : 0;
+  const attrs = getItemAttrs(item);
 
   return (
     <div
@@ -506,6 +594,7 @@ function ItemCard({ item, onClick, featured, discount }: { item: ShopItem; onCli
             src={item.item_image}
             alt={item.item_name}
             className="h-16 w-16 object-contain transition-transform duration-200 group-hover:scale-110 drop-shadow-md"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         ) : (
           <span className="text-3xl opacity-60">⚔️</span>
@@ -516,7 +605,22 @@ function ItemCard({ item, onClick, featured, discount }: { item: ShopItem; onCli
       <div className="px-3 pb-3 pt-1 space-y-1.5">
         <h3 className="text-xs font-semibold text-foreground truncate leading-tight">{item.item_name}</h3>
 
-        <div className="flex items-center gap-1.5">
+        {/* Attribute preview - show top 2 attrs */}
+        {attrs.length > 0 && (
+          <div className="space-y-0.5">
+            {attrs.slice(0, 2).map((attr, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground truncate mr-1">{attr.name}</span>
+                <span className="text-[10px] font-semibold text-emerald-400 tabular-nums shrink-0">+{attr.value}</span>
+              </div>
+            ))}
+            {attrs.length > 2 && (
+              <span className="text-[9px] text-primary/70">+{attrs.length - 2} efsun daha</span>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center gap-1.5 pt-0.5">
           <span className="flex items-center gap-0.5 text-sm font-bold text-primary tabular-nums">
             <Coins className="h-3 w-3" />
             {item.coins.toLocaleString()}
